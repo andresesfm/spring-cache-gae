@@ -79,11 +79,34 @@ public class GaeCache implements Cache {
 	 */
 	private final MemcacheService syncCache;
 
+	/**
+	 * Constructor uses supplied name
+	 * and creates a {@link MemcacheService}
+	 * using {@link MemcacheServiceFactory}.getMemcacheService()
+	 * 
+	 * @param name {@link String} namespace for cache
+	 */
 	public GaeCache(String name) {
+		this(name, MemcacheServiceFactory.getMemcacheService());
+	}
+	
+	/**
+	 * Constructor uses supplied name
+	 * and {@link MemcacheService}
+	 * 
+	 * @param name {@link String} namespace for cache
+	 * @param memcacheService {@link MemcacheService} to use for cache
+	 */
+	public GaeCache(String name, MemcacheService memcacheService) {
 
 		// Name must be supplied
 		if (name == null) {
 			throw new IllegalArgumentException("Name cannot be null.");
+		}
+		
+		// MemcacheService must not be null
+		if (memcacheService == null) {
+			throw new IllegalArgumentException("MemcacheService cannot be null.");
 		}
 
 		// Set the name and fully qualified name
@@ -91,7 +114,7 @@ public class GaeCache implements Cache {
 		this.fqName = NS_PREFIX + name;
 
 		// Get a reference to the MemcacheService
-		this.syncCache = MemcacheServiceFactory.getMemcacheService();
+		this.syncCache = memcacheService;
 
 	}
 
