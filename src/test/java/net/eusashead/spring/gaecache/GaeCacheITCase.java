@@ -37,7 +37,6 @@ import com.google.appengine.api.memcache.MemcacheServiceFactory;
 import com.google.appengine.tools.development.testing.LocalMemcacheServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 
-//@RunWith(JUnit4.class)
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes={CacheConfig.class})
 public class GaeCacheITCase {
@@ -189,18 +188,6 @@ public class GaeCacheITCase {
 		// Make sure the cleared cache is clear
 		assertNotCached("cache2", "foo2");
 		
-	}
-	
-	@Test
-	public void testCacheName() throws Exception {
-		String name = "test";
-		Cache cache = new GaeCache(name);
-		Assert.assertEquals(name, cache.getName());
-	}
-	
-	@Test(expected=IllegalArgumentException.class)
-	public void testNullCacheName() throws Exception {
-		new GaeCache(null);
 	}
 	
 	private void assertCached(String namespace, Object key) {
