@@ -20,7 +20,7 @@ import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 //@RunWith(JUnit4.class)
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes={CacheConfig.class})
-public class CacheConfigITCase {
+public class GaeCacheITCase {
 	
 	private final LocalServiceTestHelper helper =
 	        new LocalServiceTestHelper(new LocalMemcacheServiceTestConfig());
