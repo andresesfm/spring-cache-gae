@@ -1,10 +1,3 @@
-/**
- * 
- */
-/**
- * @author patrickvk
- *
- */
 package net.eusashead.spring.gaecache;
 
 /*
@@ -26,3 +19,23 @@ package net.eusashead.spring.gaecache;
  * limitations under the License.
  * %[license]
  */
+
+public class FooKey {
+	
+	private Integer id;
+	
+	public FooKey() {}
+	
+	public FooKey(Integer id) {
+		this.id = id;
+	}
+
+	public Integer getId() {
+		return id;
+	}
+
+	public void setId(Integer id) {
+		this.id = id;
+	}
+
+}
