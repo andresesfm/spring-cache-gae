@@ -6,6 +6,8 @@ import java.util.Collection;
 import org.springframework.cache.Cache;
 import org.springframework.cache.support.AbstractCacheManager;
 
+// TODO expiry time? should be different for nskey than for cache keys
+
 public class GaeCacheManager extends AbstractCacheManager {
 
 	private final Collection<GaeCache> caches = new ArrayList<GaeCache>();

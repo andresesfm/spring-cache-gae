@@ -19,10 +19,10 @@ public class CacheService {
 		return foo;
 	}
 	
-	@Cacheable(value="bar")
-	public Foo getOtherFoo(String name) {
-		Foo foo = new Foo(name);
-		foo.setId(KeyFactory.createKey("Foo", 1l));
+	@Cacheable(value="objectKey")
+	public Foo getFooByKey(FooKey key) {
+		Foo foo = new Foo(key.getId().toString());
+		foo.setId(KeyFactory.createKey("Foo", this.id.incrementAndGet()));
 		return foo;
 	}
 	
