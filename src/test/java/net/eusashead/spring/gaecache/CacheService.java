@@ -29,7 +29,6 @@ import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class CacheService {
@@ -61,7 +60,6 @@ public class CacheService {
 			evict={@CacheEvict(value="list", allEntries=true)},
 			put={@CachePut(value="objectKey", condition="#foo.id != null", key="#foo.id")}
 	)
-	@Transactional(readOnly=false)
 	public Foo saveFoo(Foo foo) {
 		return new Foo(foo.getId(), "updated"); 
 	}

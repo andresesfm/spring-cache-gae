@@ -25,7 +25,6 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
 import com.google.appengine.api.memcache.Expiration;
 import com.google.appengine.api.memcache.MemcacheServiceFactory;
@@ -33,7 +32,6 @@ import com.google.appengine.api.memcache.MemcacheServiceFactory;
 @Configuration
 @ComponentScan(basePackageClasses={CacheService.class})
 @EnableCaching
-@EnableAspectJAutoProxy
 public class CacheConfig {
 	
 	/**
