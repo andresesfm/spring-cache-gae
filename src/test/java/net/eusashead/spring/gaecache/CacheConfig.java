@@ -27,6 +27,9 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
+import com.google.appengine.api.memcache.Expiration;
+import com.google.appengine.api.memcache.MemcacheServiceFactory;
+
 @Configuration
 @ComponentScan(basePackageClasses={CacheService.class})
 @EnableCaching
@@ -41,7 +44,7 @@ public class CacheConfig {
 	@Bean(name="cacheManager")
 	public CacheManager cacheManager() {
 		GaeCacheManager cacheManager = new GaeCacheManager();
-		cacheManager.addCache(new GaeCache("default"));
+		cacheManager.addCache(new GaeCache("default", MemcacheServiceFactory.getMemcacheService(), Expiration.byDeltaSeconds(60)));
 		return cacheManager;
 	}
 

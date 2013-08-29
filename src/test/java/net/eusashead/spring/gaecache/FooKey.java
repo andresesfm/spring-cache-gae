@@ -1,5 +1,7 @@
 package net.eusashead.spring.gaecache;
 
+import java.io.Serializable;
+
 /*
  * #[license]
  * spring-cache-gae
@@ -20,22 +22,49 @@ package net.eusashead.spring.gaecache;
  * %[license]
  */
 
-public class FooKey {
+public class FooKey implements Serializable {
 	
-	private Integer id;
+	private static final long serialVersionUID = 7189421684863369582L;
+
+	private Long id;
 	
 	public FooKey() {}
 	
-	public FooKey(Integer id) {
+	public FooKey(Long id) {
 		this.id = id;
 	}
 
-	public Integer getId() {
+	public Long getId() {
 		return id;
 	}
 
-	public void setId(Integer id) {
+	public void setId(Long id) {
 		this.id = id;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		FooKey other = (FooKey) obj;
+		if (id == null) {
+			if (other.id != null)
+				return false;
+		} else if (!id.equals(other.id))
+			return false;
+		return true;
 	}
 
 }

@@ -20,32 +20,52 @@ package net.eusashead.spring.gaecache;
  * %[license]
  */
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
-
-import com.google.appengine.api.datastore.KeyFactory;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class CacheService {
-	
+
 	private final AtomicLong id = new AtomicLong(0);
-	
+
 	@Cacheable(value="default")
 	public Foo getFoo(String name) {
-		Foo foo = new Foo(name);
-		foo.setId(KeyFactory.createKey("Foo", this.id.incrementAndGet()));
+		Foo foo = new Foo(new FooKey(this.id.incrementAndGet()), name);
 		return foo;
 	}
-	
+
 	@Cacheable(value="objectKey")
 	public Foo getFooByKey(FooKey key) {
-		Foo foo = new Foo(key.getId().toString());
-		foo.setId(KeyFactory.createKey("Foo", this.id.incrementAndGet()));
+		Foo foo = new Foo(key, key.getId().toString());
 		return foo;
 	}
+
+	@Cacheable(value="list")
+	public List<Foo> listFoos() {
+		List<Foo> foos = new ArrayList<>();
+		foos.add(new Foo(new FooKey(1l), "foo"));
+		foos.add(new Foo(new FooKey(2l), "bar"));
+		foos.add(new Foo(new FooKey(3l), "baz"));
+		return foos;
+	}
 	
+	@Caching (
+			evict={@CacheEvict(value="list", allEntries=true)},
+			put={@CachePut(value="objectKey", condition="#foo.id != null", key="#foo.id")}
+	)
+	@Transactional(readOnly=false)
+	public Foo saveFoo(Foo foo) {
+		return new Foo(foo.getId(), "updated"); 
+	}
+
 	public Long getLastId() {
 		return this.id.get();
 	}

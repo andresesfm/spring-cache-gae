@@ -22,27 +22,26 @@ package net.eusashead.spring.gaecache;
 
 import java.io.Serializable;
 
-import com.google.appengine.api.datastore.Key;
-
 public class Foo implements Serializable {
 
 	private static final long serialVersionUID = -5484350584715151874L;
 
-	private Key id;  
+	private FooKey id;  
 
 	private String name;
 	
 	public Foo(){};
 
-	public Foo(String name) {
+	public Foo(FooKey id, String name) {
+		this.id = id;
 		this.name = name;
 	}
 
-	public Key getId() {
+	public FooKey getId() {
 		return id;
 	}
 
-	public void setId(Key id) {
+	public void setId(FooKey id) {
 		this.id = id;
 	}
 

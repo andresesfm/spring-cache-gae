@@ -104,7 +104,7 @@ public class GaeCacheITCase {
 		Cache cache = new GaeCache("nullCache");
 		
 		// Cache a null value
-		Foo foo = new Foo("null");
+		Foo foo = new Foo(new FooKey(1l), "null");
 		cache.put(null, foo);
 		
 		// Check consistency
@@ -120,7 +120,7 @@ public class GaeCacheITCase {
 	@Test
 	public void testObjectCacheKey() throws Exception {
 		
-		FooKey key = new FooKey(123);
+		FooKey key = new FooKey(123l);
 		Foo foo = cacheService.getFooByKey(key);
 		
 		// Check cache consistency
@@ -158,7 +158,7 @@ public class GaeCacheITCase {
 		Assert.assertNotNull(lazy);
 		
 		// Cache something
-		lazy.put("bar", new Foo("bar"));
+		lazy.put("bar", new Foo(new FooKey(1l), "bar"));
 		
 		// Check consistency
 		assertCached("other", "bar");
@@ -172,8 +172,8 @@ public class GaeCacheITCase {
 		Cache cache2 = cacheManager.getCache("cache2");
 		
 		// 2 objects for 2 caches
-		cache1.put("foo1", new Foo("foo1"));
-		cache2.put("foo2", new Foo("foo2"));
+		cache1.put("foo1", new Foo(new FooKey(1l), "foo1"));
+		cache2.put("foo2", new Foo(new FooKey(2l), "foo2"));
 		
 		// Are they cached?
 		assertCached("cache1", "foo1");
@@ -188,6 +188,26 @@ public class GaeCacheITCase {
 		// Make sure the cleared cache is clear
 		assertNotCached("cache2", "foo2");
 		
+	}
+	
+	@Test
+	public void testEvictAndPut() throws Exception {
+		
+		// Prime list cache
+		cacheService.listFoos();
+		
+		// Assert cached
+		assertCached("list", 0); // NB: Spring Cache replaces null key with a 0
+		
+		// Cause eviction and putting
+		FooKey id = new FooKey(3l);
+		cacheService.saveFoo(new Foo(id, "blah"));
+		
+		// Assert list not cached
+		assertNotCached("list", 0);
+		
+		// Assert object cached
+		assertCached("objectKey", id);
 	}
 	
 	private void assertCached(String namespace, Object key) {

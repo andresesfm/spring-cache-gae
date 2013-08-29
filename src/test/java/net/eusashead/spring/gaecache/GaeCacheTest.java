@@ -80,8 +80,8 @@ public class GaeCacheTest {
 	public void testGet() throws Exception {
 		MemcacheService service = Mockito.mock(MemcacheService.class);
 		GaeCache cache = new GaeCache("name", service, expiry);
-		FooKey key = new FooKey(1);
-		Foo value = new Foo("foo");
+		FooKey key = new FooKey(1l);
+		Foo value = new Foo(key, "foo");
 		Mockito.when(service.get(FQ_NAMESPACE)).thenReturn(100);
 		Mockito.when(service.get(NS_KEY + key)).thenReturn(value);
 		ValueWrapper retObj = cache.get(key);
@@ -98,8 +98,8 @@ public class GaeCacheTest {
 	public void testPut() throws Exception {
 		MemcacheService service = Mockito.mock(MemcacheService.class);
 		GaeCache cache = new GaeCache("name", service, expiry);
-		FooKey key = new FooKey(1);
-		Foo value = new Foo("foo");
+		FooKey key = new FooKey(1l);
+		Foo value = new Foo(key, "foo");
 		Mockito.when(service.get(FQ_NAMESPACE)).thenReturn(100);
 		cache.put(key, value);
 		Mockito.verify(service, Mockito.atLeastOnce()).put(NS_KEY + key, value, expiry);
@@ -109,7 +109,7 @@ public class GaeCacheTest {
 	public void testEvict() throws Exception {
 		MemcacheService service = Mockito.mock(MemcacheService.class);
 		GaeCache cache = new GaeCache("name", service, expiry);
-		FooKey key = new FooKey(1);
+		FooKey key = new FooKey(1l);
 		Mockito.when(service.get(FQ_NAMESPACE)).thenReturn(100);
 		Mockito.when(service.delete(NS_KEY + key)).thenReturn(true);
 		cache.evict(key);
