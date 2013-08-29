@@ -21,9 +21,11 @@ package net.eusashead.spring.gaecache;
  */
 
 import java.util.Random;
+import java.util.logging.Logger;
 
 import org.springframework.cache.Cache;
 import org.springframework.cache.support.SimpleValueWrapper;
+import org.springframework.util.Assert;
 
 import com.google.appengine.api.memcache.Expiration;
 import com.google.appengine.api.memcache.MemcacheService;
@@ -59,6 +61,11 @@ import com.google.appengine.api.memcache.MemcacheServiceFactory;
  *
  */
 public class GaeCache implements Cache {
+	
+	/**
+	 * Logger
+	 */
+	private static final Logger log = Logger.getLogger(GaeCache.class.getName());
 
 	/**
 	 * Namespace prefix to avoid accidental collisions
@@ -107,20 +114,10 @@ public class GaeCache implements Cache {
 	 */
 	public GaeCache(String name, MemcacheService memcacheService, Expiration expiration) {
 
-		// Name must be supplied
-		if (name == null) {
-			throw new IllegalArgumentException("Name cannot be null.");
-		}
-		
-		// MemcacheService must not be null
-		if (memcacheService == null) {
-			throw new IllegalArgumentException("MemcacheService cannot be null.");
-		}
-		
-		// Expiration must not be null
-		if (expiration == null) {
-			throw new IllegalArgumentException("Expiration cannot be null.");
-		}
+		// Validate parameters
+		Assert.notNull(name, "Name cannot be null.");
+		Assert.notNull(memcacheService, "MemcacheService cannot be null.");
+		Assert.notNull(expiration, "Expiration cannot be null.");
 
 		// Set the name and fully qualified name
 		this.name = name;
@@ -152,24 +149,31 @@ public class GaeCache implements Cache {
 	@Override
 	public void clear() {
 		if (this.syncCache.contains(fqName)) {
+			log.fine(String.format("Clearing cache with name %s", name));
 			this.syncCache.increment(fqName, 1);
 		}
 	}
 
 	@Override
 	public void evict(Object key) {
-		syncCache.delete(getKey(key));
+		String nsKey = getKey(key);
+		log.fine(String.format("Deleting key %s", nsKey));
+		syncCache.delete(nsKey);
 	}
 
 	@Override
 	public ValueWrapper get(Object key) {
-		Object value = syncCache.get(getKey(key));
+		String nsKey = getKey(key);
+		Object value = syncCache.get(nsKey);
+		log.fine(String.format("Retrieving key %s, got %s", nsKey, value));
 		return (value != null ? new SimpleValueWrapper(value) : null);
 	}
 
 	@Override
 	public void put(Object key, Object value) {
-		this.syncCache.put(getKey(key), value, expiration);
+		String nsKey = getKey(key);
+		log.fine(String.format("Caching key %s, with %s", nsKey, value));
+		this.syncCache.put(nsKey, value, expiration);
 	}
 
 	@Override
@@ -203,6 +207,7 @@ public class GaeCache implements Cache {
 		Integer nsKey = (Integer)this.syncCache.get(fqName);
 		if (nsKey == null) {
 			nsKey = new Random().nextInt(Integer.MAX_VALUE);
+			log.fine(String.format("Creating namespace key %s in cache %s", nsKey, name));
 			this.syncCache.put(fqName, nsKey);
 		}
 		return nsKey;
@@ -215,7 +220,7 @@ public class GaeCache implements Cache {
 	 * @return {@link String} value of key prefixed with namespace key
 	 */
 	private String getKey(Object key) {
-		return getNamespaceKey().toString() + "_" + key;
+		return fqName + "_" + getNamespaceKey().toString() + "_" + key;
 	}
 
 }

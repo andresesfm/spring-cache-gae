@@ -67,4 +67,9 @@ public class FooKey implements Serializable {
 		return true;
 	}
 
+	@Override
+	public String toString() {
+		return "FooKey [id=" + id + "]";
+	}
+
 }

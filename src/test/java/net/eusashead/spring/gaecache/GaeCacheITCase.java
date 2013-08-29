@@ -212,12 +212,12 @@ public class GaeCacheITCase {
 	
 	private void assertCached(String namespace, Object key) {
 		Integer nsKey = getNsKey(namespace);
-		Assert.assertTrue(ms.contains(nsKey + "_" + key));
+		Assert.assertTrue(ms.contains("__NAMESPACE__" + namespace + "_" + nsKey + "_" + key));
 	}
 	
 	private void assertNotCached(String namespace, Object key) {
 		Integer nsKey = getNsKey(namespace);
-		Assert.assertFalse(ms.contains(nsKey + "_" + key));
+		Assert.assertFalse(ms.contains("__NAMESPACE__" + namespace + "_" + nsKey + "_" + key));
 	}
 
 	private Integer getNsKey(String namespace) {

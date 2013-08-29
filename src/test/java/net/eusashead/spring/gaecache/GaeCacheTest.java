@@ -33,9 +33,9 @@ import com.google.appengine.api.memcache.MemcacheService;
 
 @RunWith(JUnit4.class)
 public class GaeCacheTest {
-	
-	private static final String NS_KEY = "100_";
 	private static final String FQ_NAMESPACE = "__NAMESPACE__name";
+	private static final String NS_KEY = FQ_NAMESPACE + "_100_";
+	
 	private static final Expiration expiry = Expiration.byDeltaSeconds(10);
 
 	@Test
