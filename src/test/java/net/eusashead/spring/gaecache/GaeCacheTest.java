@@ -28,6 +28,7 @@ import org.mockito.Mockito;
 import org.springframework.cache.Cache;
 import org.springframework.cache.Cache.ValueWrapper;
 
+import com.google.appengine.api.memcache.Expiration;
 import com.google.appengine.api.memcache.MemcacheService;
 
 @RunWith(JUnit4.class)
@@ -35,6 +36,7 @@ public class GaeCacheTest {
 	
 	private static final String NS_KEY = "100_";
 	private static final String FQ_NAMESPACE = "__NAMESPACE__name";
+	private static final Expiration expiry = Expiration.byDeltaSeconds(10);
 
 	@Test
 	public void testCacheName() throws Exception {
@@ -50,20 +52,25 @@ public class GaeCacheTest {
 	
 	@Test(expected=IllegalArgumentException.class)
 	public void testNullMemcacheService() throws Exception {
-		new GaeCache("name", null);
+		new GaeCache("name", null, expiry);
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testNullExpiration() throws Exception {
+		new GaeCache("name", Mockito.mock(MemcacheService.class), null);
 	}
 	
 	@Test
 	public void testConstructWithService() throws Exception {
 		MemcacheService service = Mockito.mock(MemcacheService.class);
-		GaeCache cache = new GaeCache("name", service);
+		GaeCache cache = new GaeCache("name", service, expiry);
 		Assert.assertEquals(service, cache.getNativeCache());
 	}
 	
 	@Test
 	public void testClear() throws Exception {
 		MemcacheService service = Mockito.mock(MemcacheService.class);
-		GaeCache cache = new GaeCache("name", service);
+		GaeCache cache = new GaeCache("name", service, expiry);
 		Mockito.when(service.contains(FQ_NAMESPACE)).thenReturn(true);
 		cache.clear();
 		Mockito.verify(service, Mockito.atLeastOnce()).increment(FQ_NAMESPACE, 1);
@@ -72,7 +79,7 @@ public class GaeCacheTest {
 	@Test
 	public void testGet() throws Exception {
 		MemcacheService service = Mockito.mock(MemcacheService.class);
-		GaeCache cache = new GaeCache("name", service);
+		GaeCache cache = new GaeCache("name", service, expiry);
 		FooKey key = new FooKey(1);
 		Foo value = new Foo("foo");
 		Mockito.when(service.get(FQ_NAMESPACE)).thenReturn(100);
@@ -90,18 +97,18 @@ public class GaeCacheTest {
 	@Test
 	public void testPut() throws Exception {
 		MemcacheService service = Mockito.mock(MemcacheService.class);
-		GaeCache cache = new GaeCache("name", service);
+		GaeCache cache = new GaeCache("name", service, expiry);
 		FooKey key = new FooKey(1);
 		Foo value = new Foo("foo");
 		Mockito.when(service.get(FQ_NAMESPACE)).thenReturn(100);
 		cache.put(key, value);
-		Mockito.verify(service, Mockito.atLeastOnce()).put(NS_KEY + key, value);
+		Mockito.verify(service, Mockito.atLeastOnce()).put(NS_KEY + key, value, expiry);
 	}
 	
 	@Test
 	public void testEvict() throws Exception {
 		MemcacheService service = Mockito.mock(MemcacheService.class);
-		GaeCache cache = new GaeCache("name", service);
+		GaeCache cache = new GaeCache("name", service, expiry);
 		FooKey key = new FooKey(1);
 		Mockito.when(service.get(FQ_NAMESPACE)).thenReturn(100);
 		Mockito.when(service.delete(NS_KEY + key)).thenReturn(true);

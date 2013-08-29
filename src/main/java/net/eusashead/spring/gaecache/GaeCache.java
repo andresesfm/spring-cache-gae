@@ -25,6 +25,7 @@ import java.util.Random;
 import org.springframework.cache.Cache;
 import org.springframework.cache.support.SimpleValueWrapper;
 
+import com.google.appengine.api.memcache.Expiration;
 import com.google.appengine.api.memcache.MemcacheService;
 import com.google.appengine.api.memcache.MemcacheServiceFactory;
 
@@ -63,6 +64,11 @@ public class GaeCache implements Cache {
 	 * Namespace prefix to avoid accidental collisions
 	 */
 	private static final String NS_PREFIX = "__NAMESPACE__";
+	
+	/**
+	 * Duration to cache values for
+	 */
+	private final Expiration expiration;
 
 	/**
 	 * The "friendly" name as seen by the GaeCacheManager
@@ -83,11 +89,12 @@ public class GaeCache implements Cache {
 	 * Constructor uses supplied name
 	 * and creates a {@link MemcacheService}
 	 * using {@link MemcacheServiceFactory}.getMemcacheService()
+	 * and a default expiration time of 30 minutes
 	 * 
 	 * @param name {@link String} namespace for cache
 	 */
 	public GaeCache(String name) {
-		this(name, MemcacheServiceFactory.getMemcacheService());
+		this(name, MemcacheServiceFactory.getMemcacheService(), Expiration.byDeltaSeconds(3600));
 	}
 	
 	/**
@@ -96,8 +103,9 @@ public class GaeCache implements Cache {
 	 * 
 	 * @param name {@link String} namespace for cache
 	 * @param memcacheService {@link MemcacheService} to use for cache
+	 * @param expiration {@link Expiration} to use for cached values
 	 */
-	public GaeCache(String name, MemcacheService memcacheService) {
+	public GaeCache(String name, MemcacheService memcacheService, Expiration expiration) {
 
 		// Name must be supplied
 		if (name == null) {
@@ -108,6 +116,11 @@ public class GaeCache implements Cache {
 		if (memcacheService == null) {
 			throw new IllegalArgumentException("MemcacheService cannot be null.");
 		}
+		
+		// Expiration must not be null
+		if (expiration == null) {
+			throw new IllegalArgumentException("Expiration cannot be null.");
+		}
 
 		// Set the name and fully qualified name
 		this.name = name;
@@ -115,6 +128,9 @@ public class GaeCache implements Cache {
 
 		// Get a reference to the MemcacheService
 		this.syncCache = memcacheService;
+		
+		// Set the cache expiration
+		this.expiration = expiration;
 
 	}
 
@@ -153,7 +169,7 @@ public class GaeCache implements Cache {
 
 	@Override
 	public void put(Object key, Object value) {
-		this.syncCache.put(getKey(key), value);
+		this.syncCache.put(getKey(key), value, expiration);
 	}
 
 	@Override
