@@ -197,7 +197,7 @@ public class GaeCacheITCase {
 		cacheService.listFoos();
 		
 		// Assert cached
-		assertCached("list", 0); // NB: Spring Cache replaces null key with a 0
+		assertCached("list", ""); 
 		
 		// Create a key
 		FooKey id = new FooKey(3l);
