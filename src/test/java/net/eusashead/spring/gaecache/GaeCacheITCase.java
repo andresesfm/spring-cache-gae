@@ -199,11 +199,16 @@ public class GaeCacheITCase {
 		// Assert cached
 		assertCached("list", 0); // NB: Spring Cache replaces null key with a 0
 		
-		// Cause eviction and putting
+		// Create a key
 		FooKey id = new FooKey(3l);
+		
+		// Assert object not cached
+		assertNotCached("objectKey", id);
+		
+		// Cause eviction and putting
 		cacheService.saveFoo(new Foo(id, "blah"));
 		
-		// Assert list not cached
+		// Assert list not cached anymore
 		assertNotCached("list", 0);
 		
 		// Assert object cached
