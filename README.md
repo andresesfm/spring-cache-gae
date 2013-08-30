@@ -9,23 +9,61 @@ Spring Cache for Google App Engine [![Build Status](https://travis-ci.org/patric
 - Support for namespaces including clear() operations scoped to the namespace of the cache using [this approach](http://code.google.com/p/memcached/wiki/NewProgrammingTricks#Deleting_By_Namespace)
 - Customisable expiration times per cache (with a default value of 30 minutes)
 
+##GaeCacheKeyGenerator
+In order to support namespaces, each cache key is prefixed with a namespace key that is incremented when the namespace is cleared. Because of this, all cache keys are converted to a String in order to prefix the namespace.
+
+Therefore, it is important that the key generator can generate useful keys that have a meaningful String representation.
+
+The GaeCacheKeyGenerator creates a String representation of method parameters using the toString() method of the parameter objects.
+
+So parameter objects should override toString() from Object and generate a unique String consistent with equals (e.g. equal objects would have equal string representations) and that the string representation should be based on the object's state (e.g. its fields).
+
+If your parameters are all primitive or wrapper types, no action needs to be taken. These have suitable toString() implementations.
+
+Alternatively, if a parameter object doesn't have a viable toString() method and one cannot be added because it is a 3rd party class you can create a `KeyGeneratorStrategy` implementation and register this with the GaeCacheKeyGenerator.
+
+For example:
+
+    public class FooKeyGeneratorStrategy implements KeyGeneratorStrategy<Foo> {
+
+	    @Override
+	    public String getKey(Object keySource) {
+	        Assert.notNull(keySource);
+	        Assert.isAssignable(Foo.class, keySource.getClass());
+	        Foo foo = Foo.class.cast(keySource);
+		    return "Foo [id=" + foo.getId() + "]";
+	    }
+	
+     }
+     
+See Configuration below for how to set up a `GaeCache` and `GaeCacheKeyGenerator` with a custom `KeyGeneratorStrategy` below.
+
 ##Configuration
 A Spring Java configuration is below.
 
     @Configuration
-    public class CacheConfig {
-    
-        /**
-         * Set up the {@link CacheManager}
-         * with an memcached based cache
-         * @return the configured {@link CacheManager} instance
-         */
-        @Bean(name="cacheManager")
-        public CacheManager cacheManager() {
-            GaeCacheManager cacheManager = new GaeCacheManager();
-            cacheManager.addCache(new GaeCache("default", MemcacheServiceFactory.getMemcacheService(), Expiration.byDeltaSeconds(60)));
-            return cacheManager;
-        }
+    public class CacheConfig implements CachingConfigurer {
+	
+	    /**
+	     * Set up the {@link CacheManager}
+	     * with an memcached based cache
+	     * @return
+	     */
+	    @Bean(name="cacheManager")
+	    @Override
+	    public CacheManager cacheManager() {
+		    GaeCacheManager cacheManager = new GaeCacheManager();
+		    cacheManager.addCache(new GaeCache("default", MemcacheServiceFactory.getMemcacheService(), Expiration.byDeltaSeconds(60)));
+		    return cacheManager;
+	    }
+
+	    @Bean
+	    @Override
+ 	    public KeyGenerator keyGenerator() {
+		    GaeCacheKeyGenerator generator = new GaeCacheKeyGenerator();
+		    generator.registerStrategy(Foo.class, new FooKeyGeneratorStrategy());
+		    return generator;
+	    }
 
     }
     

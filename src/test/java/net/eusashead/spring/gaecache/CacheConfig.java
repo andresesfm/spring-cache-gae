@@ -21,7 +21,9 @@ package net.eusashead.spring.gaecache;
  */
 
 import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CachingConfigurer;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -32,7 +34,7 @@ import com.google.appengine.api.memcache.MemcacheServiceFactory;
 @Configuration
 @ComponentScan(basePackageClasses={CacheService.class})
 @EnableCaching
-public class CacheConfig {
+public class CacheConfig implements CachingConfigurer {
 	
 	/**
 	 * Set up the {@link CacheManager}
@@ -40,10 +42,18 @@ public class CacheConfig {
 	 * @return
 	 */
 	@Bean(name="cacheManager")
+	@Override
 	public CacheManager cacheManager() {
 		GaeCacheManager cacheManager = new GaeCacheManager();
 		cacheManager.addCache(new GaeCache("default", MemcacheServiceFactory.getMemcacheService(), Expiration.byDeltaSeconds(60)));
 		return cacheManager;
+	}
+
+	@Bean
+	@Override
+	public KeyGenerator keyGenerator() {
+		GaeCacheKeyGenerator generator = new GaeCacheKeyGenerator();
+		return generator;
 	}
 
 }
