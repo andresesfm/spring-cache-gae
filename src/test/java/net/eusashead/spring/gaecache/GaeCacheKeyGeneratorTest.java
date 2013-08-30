@@ -82,7 +82,7 @@ public class GaeCacheKeyGeneratorTest {
 		Assert.assertEquals("true", generator.generate(service, null, true));
 
 		// Date
-		Assert.assertEquals("Fri Jan 02 11:17:36 GMT 1970", generator.generate(service, null, new Date(123456789l)));
+		Assert.assertEquals(new Date(123456789l).toString(), generator.generate(service, null, new Date(123456789l)));
 	}
 
 	@Test
