@@ -46,74 +46,74 @@ public class GaeCacheKeyGeneratorTest {
 	public void testSingleArgumentPrimitive() {
 
 		// Integer
-		Assert.assertEquals("1", generator.generate(service, null, Integer.valueOf(1)));
+		Assert.assertEquals("<key<params<<p0=1>>>>", generator.generate(service, null, Integer.valueOf(1)));
 
 		// int
-		Assert.assertEquals("1", generator.generate(service, null, 1));
+		Assert.assertEquals("<key<params<<p0=1>>>>", generator.generate(service, null, 1));
 
 		// Long
-		Assert.assertEquals("1", generator.generate(service, null, Long.valueOf(1)));
+		Assert.assertEquals("<key<params<<p0=1>>>>", generator.generate(service, null, Long.valueOf(1)));
 
 		// long
-		Assert.assertEquals("1", generator.generate(service, null, 1l));
+		Assert.assertEquals("<key<params<<p0=1>>>>", generator.generate(service, null, 1l));
 
 		// String
-		Assert.assertEquals("string", generator.generate(service, null, "string"));
+		Assert.assertEquals("<key<params<<p0=string>>>>", generator.generate(service, null, "string"));
 
 		// Decimal
-		Assert.assertEquals("1.32", generator.generate(service, null, BigDecimal.valueOf(1.32)));
+		Assert.assertEquals("<key<params<<p0=1.32>>>>", generator.generate(service, null, BigDecimal.valueOf(1.32)));
 
 		// Float
-		Assert.assertEquals("1.32", generator.generate(service, null, Float.valueOf(1.32f)));
+		Assert.assertEquals("<key<params<<p0=1.32>>>>", generator.generate(service, null, Float.valueOf(1.32f)));
 
 		// float
-		Assert.assertEquals("1.32", generator.generate(service, null, 1.32f));
+		Assert.assertEquals("<key<params<<p0=1.32>>>>", generator.generate(service, null, 1.32f));
 
 		// double
-		Assert.assertEquals("1.32", generator.generate(service, null, 1.32d));
+		Assert.assertEquals("<key<params<<p0=1.32>>>>", generator.generate(service, null, 1.32d));
 
 		// Double
-		Assert.assertEquals("1.32", generator.generate(service, null, Double.valueOf(1.32)));
+		Assert.assertEquals("<key<params<<p0=1.32>>>>", generator.generate(service, null, Double.valueOf(1.32)));
 
 		// Boolean
-		Assert.assertEquals("true", generator.generate(service, null, Boolean.TRUE));
+		Assert.assertEquals("<key<params<<p0=true>>>>", generator.generate(service, null, Boolean.TRUE));
 
 		// boolean
-		Assert.assertEquals("true", generator.generate(service, null, true));
+		Assert.assertEquals("<key<params<<p0=true>>>>", generator.generate(service, null, true));
 
 		// Date
-		Assert.assertEquals(new Date(123456789l).toString(), generator.generate(service, null, new Date(123456789l)));
+		Assert.assertEquals("<key<params<<p0=" + new Date(123456789l) + ">>>>", generator.generate(service, null, new Date(123456789l)));
 	}
 
 	@Test
 	public void testSingleArgumentNull() {
 		Object key = generator.generate(service, null, new Object[0]);
-		Assert.assertEquals("", key.toString());
+		Assert.assertEquals("<key<params<>>>", key.toString());
 	}
 
 	@Test
 	public void testSingleArgumentObject() {
 		Object key = generator.generate(service, null, new FooKey(1l));
-		Assert.assertEquals("FooKey [id=1]", key.toString());
+		Assert.assertEquals("<key<params<<p0=FooKey [id=1]>>>>", key.toString());
 	}
 
 	@Test
 	public void testMultiArgument() {
 		Object key = generator.generate(service, null, 1, true, 2.32d);
-		Assert.assertEquals("1,true,2.32", key.toString());
+		Assert.assertEquals("<key<params<<p0=1>,<p1=true>,<p2=2.32>>>>", key.toString());
 	}
 	
 	@Test
 	public void testMultiArgumentNull() {
-		Assert.assertEquals(",true,2.32", generator.generate(service, null, null, true, 2.32d));
-		Assert.assertEquals("1,,2.32", generator.generate(service, null, 1, null, 2.32d));
-		Assert.assertEquals("1,true,", generator.generate(service, null, 1, true, null));
+		Assert.assertEquals("<key<params<<p0=>,<p1=true>,<p2=2.32>>>>", generator.generate(service, null, null, true, 2.32d));
+		Assert.assertEquals("<key<params<<p0=1>,<p1=>,<p2=2.32>>>>", generator.generate(service, null, 1, null, 2.32d));
+		Assert.assertEquals("<key<params<<p0=1>,<p1=true>,<p2=>>>>", generator.generate(service, null, 1, true, null));
 	}
 
 	@Test
 	public void testRegisterStrategy() {
 		generator.registerStrategy(Foo.class, new FooKeyGeneratorStrategy());
-		Assert.assertEquals("foo", generator.generate(service, null, new Foo()));
+		Assert.assertEquals("<key<params<<p0=foo>>>>", generator.generate(service, null, new Foo()));
 		
 	}
 

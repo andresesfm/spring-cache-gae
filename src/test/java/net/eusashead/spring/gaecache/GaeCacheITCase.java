@@ -124,10 +124,10 @@ public class GaeCacheITCase {
 		Foo foo = cacheService.getFooByKey(key);
 		
 		// Check cache consistency
-		assertCached("objectKey", key);
+		assertCached("objectKey", "<key<params<<p0=FooKey [id=123]>>>>");
 		
 		// Get it back from the cache
-		Foo cached = (Foo)cacheManager.getCache("objectKey").get(key).get();
+		Foo cached = (Foo)cacheManager.getCache("objectKey").get("<key<params<<p0=FooKey [id=123]>>>>").get();
 		Assert.assertEquals(foo, cached);
 		
 		
@@ -146,7 +146,7 @@ public class GaeCacheITCase {
 		Assert.assertEquals(Long.valueOf(1), cacheService.getLastId());		
 		
 		// Check cache consistency
-		assertCached("default", "foo");
+		assertCached("default", "<key<params<<p0=foo>>>>");
 		
 	}
 	
@@ -197,7 +197,7 @@ public class GaeCacheITCase {
 		cacheService.listFoos();
 		
 		// Assert cached
-		assertCached("list", ""); 
+		assertCached("list", "<key<params<>>>"); 
 		
 		// Create a key
 		FooKey id = new FooKey(3l);

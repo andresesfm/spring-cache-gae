@@ -67,18 +67,23 @@ public class GaeCacheKeyGenerator implements KeyGenerator {
 	 */
 	@Override
 	public Object generate(Object target, Method method, Object... args) {
-		StringBuilder compoundKey = new StringBuilder();
+		StringBuilder compoundKey = new StringBuilder("<key<params<");
 		for (int i=0;i<args.length;i++) {
+			compoundKey.append("<p");
+			compoundKey.append(i);
+			compoundKey.append("=");
 			Object obj = args[i];
 			if (obj == null) {
 				compoundKey.append("");
 			} else {
 				compoundKey.append(getKey(obj));
 			}
+			compoundKey.append(">");
 			if (i < args.length - 1) {
 				compoundKey.append(",");
 			}
 		}
+		compoundKey.append(">>>");
 		return compoundKey.toString();
 	}
 	
