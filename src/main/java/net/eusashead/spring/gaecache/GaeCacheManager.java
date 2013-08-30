@@ -23,32 +23,50 @@ package net.eusashead.spring.gaecache;
 import java.util.ArrayList;
 import java.util.Collection;
 
+
 import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.support.AbstractCacheManager;
 
-// TODO expiry time? should be different for nskey than for cache keys
-
+/**
+ * Implementation of {@link CacheManager} that 
+ * creates or returns an existing {@link GaeCache}
+ *  
+ * @author patrickvk
+ *
+ */
 public class GaeCacheManager extends AbstractCacheManager {
 
 	private final Collection<GaeCache> caches = new ArrayList<GaeCache>();
 	
+	/* (non-Javadoc)
+	 * @see org.springframework.cache.support.AbstractCacheManager#loadCaches()
+	 */
 	@Override
 	protected Collection<? extends Cache> loadCaches() {
 		return this.caches;
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.springframework.cache.support.AbstractCacheManager#getCache(java.lang.String)
+	 */
 	@Override
 	public Cache getCache(String name) {
 		Cache cache = super.getCache(name);
 		if (cache == null) {
-			// check the EhCache cache again
-			// (in case the cache was added at runtime)
+			// Cache doesn't exist yet so create on the fly
 			cache = new GaeCache(name);
 			super.addCache(cache);
 		}
 		return cache;
 	}
 	
+	/**
+	 * Add a pre-configured cache
+	 * to the cache collection.
+	 * 
+	 * @param cache
+	 */
 	public void addCache(GaeCache cache) {
 		this.caches.add(cache);
 	}
