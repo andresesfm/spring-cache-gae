@@ -4,7 +4,7 @@ import java.nio.charset.Charset;
 
 import com.google.common.hash.Hashing;
 
-public class KeyHash {
+public class Murmur3HashAlgorithm implements HashAlgorithm {
 	
 	/**
 	 * Returns a string containing each byte 
@@ -14,7 +14,7 @@ public class KeyHash {
 	 * @param key
 	 * @return
 	 */
-	public static String hash(String key) {
+	public String hash(String key) {
 		return Hashing.murmur3_32().hashBytes(key.getBytes(Charset.forName("UTF-8"))).toString();
 	}
 

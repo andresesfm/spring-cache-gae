@@ -28,21 +28,21 @@ import org.junit.runners.JUnit4;
 import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
-public class DefaultKeyGeneratorStrategyTest {
+public class DefaultArgumentHashStrategyTest {
 
 	@Test
 	public void testStrategy() {
 		Object source = Mockito.mock(Object.class);
 		Mockito.when(source.toString()).thenReturn("string");
-		DefaultKeyGeneratorStrategy strat = new DefaultKeyGeneratorStrategy();
-		String key = strat.getKey(source);
-		Assert.assertEquals("string", key);
+		DefaultArgumentHashStrategy strat = new DefaultArgumentHashStrategy();
+		ArgumentHash key = strat.hash(source);
+		Assert.assertEquals(new ArgumentHash("string"), key);
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
 	public void testNullSource() {
 		Object source = null;
-		DefaultKeyGeneratorStrategy strat = new DefaultKeyGeneratorStrategy();
-		strat.getKey(source);
+		DefaultArgumentHashStrategy strat = new DefaultArgumentHashStrategy();
+		strat.hash(source);
 	}
 }

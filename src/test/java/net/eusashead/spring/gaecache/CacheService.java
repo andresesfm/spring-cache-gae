@@ -58,7 +58,7 @@ public class CacheService {
 	
 	@Caching (
 			evict={@CacheEvict(value="list", allEntries=true)},
-			put={@CachePut(value="objectKey", condition="#foo.id != null", key="T(net.eusashead.spring.gaecache.KeyHash).hash(#foo.id.toString())")}
+			put={@CachePut(value="objectKey", condition="#foo.id != null", key="T(net.eusashead.spring.gaecache.GaeCacheKey).create(#foo.id.toString())")}
 	)
 	public Foo saveFoo(Foo foo) {
 		return new Foo(foo.getId(), "updated"); 

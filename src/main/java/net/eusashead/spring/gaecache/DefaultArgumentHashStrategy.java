@@ -30,15 +30,15 @@ import org.springframework.util.Assert;
  * @author patrickvk
  *
  */
-public class DefaultKeyGeneratorStrategy implements KeyGeneratorStrategy<Object> {
+public class DefaultArgumentHashStrategy implements ArgumentHashStrategy<Object> {
 	
 	/* (non-Javadoc)
 	 * @see net.eusashead.spring.gaecache.KeyGeneratorStrategy#getKey(java.lang.Object)
 	 */
 	@Override
-	public String getKey(Object keySource) {
+	public ArgumentHash hash(Object keySource) {
 		Assert.notNull(keySource);
-		return keySource.toString();
+		return new ArgumentHash(keySource.toString());
 	}
 	
 }

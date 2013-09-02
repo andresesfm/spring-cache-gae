@@ -90,20 +90,20 @@ public class GaeCacheKeyGeneratorTest {
 	@Test
 	public void testSingleArgumentNull() {
 		Object key = generator.generate(service, null, new Object[0]);
-		Assert.assertEquals(keyToString(new Object[0]), key.toString());
+		Assert.assertEquals(keyToString(new Object[0]), key);
 	}
 
 	@Test
 	public void testSingleArgumentObject() {
 		Object key = generator.generate(service, null, new FooKey(1l));
-		Assert.assertEquals(keyToString(key), KeyHash.hash(key.toString()));
+		Assert.assertEquals(keyToString(key), GaeCacheKey.create(key.toString()));
 	}
 
 	@Test
 	public void testMultiArgument() {
 		Object[] args = new Object[]{1, true, 2.32d};
 		Object key = generator.generate(service, null, args);
-		Assert.assertEquals(keyToString(args), key.toString());
+		Assert.assertEquals(keyToString(args), key);
 	}
 	
 	@Test
@@ -121,13 +121,13 @@ public class GaeCacheKeyGeneratorTest {
 		FooKeyGeneratorStrategy strategy = new FooKeyGeneratorStrategy();
 		generator.registerStrategy(Foo.class, strategy);
 		Foo foo = new Foo();
-		Assert.assertEquals(KeyHash.hash(strategy.getKey(foo)), generator.generate(service, null, foo));
+		Assert.assertEquals(new GaeCacheKey(new FooKeyGeneratorStrategy().hash(foo)), generator.generate(service, null, foo));
 		
 	}
 
 	@Test(expected=IllegalArgumentException.class)
 	public void testRegisterStrategyNullType() {
-		generator.registerStrategy(null, new DefaultKeyGeneratorStrategy());
+		generator.registerStrategy(null, new DefaultArgumentHashStrategy());
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
@@ -142,11 +142,11 @@ class FooService {
 	}
 }
 
-class FooKeyGeneratorStrategy implements KeyGeneratorStrategy<Foo> {
+class FooKeyGeneratorStrategy implements ArgumentHashStrategy<Foo> {
 
 	@Override
-	public String getKey(Object keySource) {
-		return "foo";
+	public ArgumentHash hash(Object keySource) {
+		return new ArgumentHash("foo");
 	}
 	
 }

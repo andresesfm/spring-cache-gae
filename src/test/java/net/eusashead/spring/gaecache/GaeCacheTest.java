@@ -82,11 +82,12 @@ public class GaeCacheTest {
 		GaeCache cache = new GaeCache("name", service, expiry);
 		FooKey key = new FooKey(1l);
 		Foo value = new Foo(key, "foo");
+		GaeCacheKey cacheKey = GaeCacheKey.create(key.toString());
 		Mockito.when(service.get(FQ_NAMESPACE)).thenReturn(100);
-		Mockito.when(service.get(NS_KEY + key)).thenReturn(value);
-		ValueWrapper retObj = cache.get(key);
+		Mockito.when(service.get(NS_KEY + cacheKey)).thenReturn(value);
+		ValueWrapper retObj = cache.get(cacheKey);
 		Mockito.verify(service, Mockito.atLeastOnce()).get(FQ_NAMESPACE);
-		Mockito.verify(service, Mockito.atLeastOnce()).get(NS_KEY + key);
+		Mockito.verify(service, Mockito.atLeastOnce()).get(NS_KEY + cacheKey);
 		Assert.assertNotNull(retObj);
 		Assert.assertNotNull(retObj.get());
 		Assert.assertTrue(Foo.class.isAssignableFrom(retObj.get().getClass()));
@@ -101,8 +102,9 @@ public class GaeCacheTest {
 		FooKey key = new FooKey(1l);
 		Foo value = new Foo(key, "foo");
 		Mockito.when(service.get(FQ_NAMESPACE)).thenReturn(100);
-		cache.put(key, value);
-		Mockito.verify(service, Mockito.atLeastOnce()).put(NS_KEY + key, value, expiry);
+		GaeCacheKey cacheKey = GaeCacheKey.create(key.toString());
+		cache.put(cacheKey, value);
+		Mockito.verify(service, Mockito.atLeastOnce()).put(NS_KEY + cacheKey, value, expiry);
 	}
 	
 	@Test
@@ -112,8 +114,9 @@ public class GaeCacheTest {
 		FooKey key = new FooKey(1l);
 		Mockito.when(service.get(FQ_NAMESPACE)).thenReturn(100);
 		Mockito.when(service.delete(NS_KEY + key)).thenReturn(true);
-		cache.evict(key);
-		Mockito.verify(service, Mockito.atLeastOnce()).delete(NS_KEY + key);
+		GaeCacheKey cacheKey = GaeCacheKey.create(key.toString());
+		cache.evict(cacheKey);
+		Mockito.verify(service, Mockito.atLeastOnce()).delete(NS_KEY + cacheKey);
 	}
 
 }

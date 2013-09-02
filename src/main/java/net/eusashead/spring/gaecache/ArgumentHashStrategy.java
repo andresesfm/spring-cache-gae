@@ -34,15 +34,16 @@ package net.eusashead.spring.gaecache;
  *
  * @param <T>
  */
-public interface KeyGeneratorStrategy<T> {
+public interface ArgumentHashStrategy<T> {
 	
 	/**
 	 * Perform the key conversion
 	 * for the supplied instance
 	 * 
 	 * @param keySource
-	 * @return unique {@link String} based on object state
+	 * @return unique {@link ArgumentHash} based on object state
 	 */
-	String getKey(Object keySource);
+	
+	ArgumentHash hash(Object keySource);
 	
 }

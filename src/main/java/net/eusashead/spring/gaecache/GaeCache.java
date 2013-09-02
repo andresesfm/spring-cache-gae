@@ -156,23 +156,35 @@ public class GaeCache implements Cache {
 
 	@Override
 	public void evict(Object key) {
-		String nsKey = getKey(key);
-		log.fine(String.format("Deleting key %s", nsKey));
+		Assert.notNull(key);
+		Assert.isAssignable(GaeCacheKey.class, key.getClass());
+		GaeCacheKey cacheKey = GaeCacheKey.class.cast(key);
+		Integer namespaceKey = getNamespaceKey();
+		String nsKey = getKey(namespaceKey, cacheKey);
+		log.fine(String.format("Deleting key %s (%s) from namespace %s (namespace key: %s)", cacheKey.hashValue(), cacheKey.rawValue(), this.name, namespaceKey));
 		syncCache.delete(nsKey);
 	}
 
 	@Override
 	public ValueWrapper get(Object key) {
-		String nsKey = getKey(key);
+		Assert.notNull(key);
+		Assert.isAssignable(GaeCacheKey.class, key.getClass());
+		GaeCacheKey cacheKey = GaeCacheKey.class.cast(key);
+		Integer namespaceKey = getNamespaceKey();
+		String nsKey = getKey(namespaceKey, cacheKey);
 		Object value = syncCache.get(nsKey);
-		log.fine(String.format("Retrieving key %s, got %s", nsKey, value));
+		log.fine(String.format("Retrieving key %s (%s) from namespace %s (namespace key: %s), got %s", cacheKey.hashValue(), cacheKey.rawValue(), this.name, namespaceKey, value));
 		return (value != null ? new SimpleValueWrapper(value) : null);
 	}
 
 	@Override
 	public void put(Object key, Object value) {
-		String nsKey = getKey(key);
-		log.fine(String.format("Caching key %s, with %s", nsKey, value));
+		Assert.notNull(key);
+		Assert.isAssignable(GaeCacheKey.class, key.getClass());
+		GaeCacheKey cacheKey = GaeCacheKey.class.cast(key);
+		Integer namespaceKey = getNamespaceKey();
+		String nsKey = getKey(namespaceKey, cacheKey);
+		log.fine(String.format("Caching key %s (%s) from namespace %s (namespace key: %s), with %s", cacheKey.hashValue(), cacheKey.rawValue(), this.name, namespaceKey, value));
 		this.syncCache.put(nsKey, value, expiration);
 	}
 
@@ -219,8 +231,8 @@ public class GaeCache implements Cache {
 	 * @param key {@link Object} the original key, without the namespace prefix
 	 * @return {@link String} value of key prefixed with namespace key
 	 */
-	private String getKey(Object key) {
-		return fqName + "_" + getNamespaceKey().toString() + "_" + key;
+	private String getKey(Integer namespaceKey, GaeCacheKey key) {
+		return fqName + "_" + namespaceKey.toString() + "_" + key.hashValue();
 	}
-
+	
 }
