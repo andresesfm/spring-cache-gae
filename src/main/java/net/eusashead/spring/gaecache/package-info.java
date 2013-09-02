@@ -1,5 +1,8 @@
 /**
- * 
+ * An implementation of a Spring
+ * Cache and CacheManager for 
+ * Google App Engine's memcached
+ * Java service.
  */
 /**
  * @author patrickvk
