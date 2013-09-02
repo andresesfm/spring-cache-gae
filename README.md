@@ -10,60 +10,67 @@ Spring Cache for Google App Engine [![Build Status](https://travis-ci.org/patric
 - Customisable expiration times per cache (with a default value of 30 minutes)
 
 ##GaeCacheKeyGenerator
-In order to support namespaces, each cache key is prefixed with a namespace key that is incremented when the namespace is cleared. Because of this, all cache keys are converted to a String in order to prefix the namespace.
+In order to support namespaces, each cache key is prefixed with a namespace key that is incremented when the namespace is cleared. Because of this, all cache keys are converted to a hashed String in order to prefix the namespace.
 
 Therefore, it is important that the key generator can generate useful keys that have a meaningful String representation.
 
-The GaeCacheKeyGenerator creates a String representation of method parameters using the toString() method of the parameter objects.
+The `GaeCacheKeyGenerator` creates a `GaeCacheKey` which is a representation of method parameters using a ArgumentHash (based Murmur3 hash on toString() method of the parameter objects or a custom strategy).
 
-So parameter objects should override toString() from Object and generate a unique String consistent with equals (e.g. equal objects would have equal string representations) and that the string representation should be based on the object's state (e.g. its fields).
+So parameter objects should override toString() from Object and generate a unique String consistent with equals (e.g. equal objects would have equal string representations) and that the string representation should be based on the object's state (e.g. its fields). 
 
 If your parameters are all primitive or wrapper types, no action needs to be taken. These have suitable toString() implementations.
 
-Alternatively, if a parameter object doesn't have a viable toString() method and one cannot be added because it is a 3rd party class you can create a `KeyGeneratorStrategy` implementation and register this with the GaeCacheKeyGenerator.
+Alternatively, if a parameter object doesn't have a viable toString() method and one cannot be added because it is a 3rd party class you can create a `ArgumentHashStrategy` implementation and register this with the `GaeCacheKeyGenerator`.
 
-For example:
+For example, the `PageRequest` object from Spring Data Commons does not override toString() and I want to use it as a cache key:
 
-    public class FooKeyGeneratorStrategy implements KeyGeneratorStrategy<Foo> {
+    public class PageRequestArgumentHashStrategy implements ArgumentHashStrategy<PageRequest> {
 
-	    @Override
-	    public String getKey(Object keySource) {
-	        Assert.notNull(keySource);
-	        Assert.isAssignable(Foo.class, keySource.getClass());
-	        Foo foo = Foo.class.cast(keySource);
-		    return "Foo [id=" + foo.getId() + "]";
-	    }
-	
-     }
+        @Override
+        public ArgumentHash hash(Object keySource) {
+            Assert.notNull(keySource);
+            Assert.isAssignable(PageRequest.class, keySource.getClass());
+            PageRequest pr = PageRequest.class.cast(keySource);
+            StringBuilder sb = new StringBuilder("PageRequest [");
+            sb.append(String.format("page=%s", pr.getPageNumber()));
+            sb.append(String.format(", size=%s", pr.getPageSize()));
+            if (pr.getSort() != null) {
+                sb.append(String.format(", sort=%s", pr.getSort()));
+            }
+            sb.append("]");
+            return new ArgumentHash(sb.toString());
+        }
+        
+    }   
      
-See Configuration below for how to set up a `GaeCache` and `GaeCacheKeyGenerator` with a custom `KeyGeneratorStrategy` below.
+See Configuration below for how to set up a `GaeCache` and `GaeCacheKeyGenerator` with a custom `ArgumentHashStrategy` below.
 
 ##Configuration
-A Spring Java configuration is below.
+An example Spring Java configuration is below.
 
     @Configuration
     public class CacheConfig implements CachingConfigurer {
-	
-	    /**
-	     * Set up the {@link CacheManager}
-	     * with an memcached based cache
-	     * @return
-	     */
-	    @Bean(name="cacheManager")
-	    @Override
-	    public CacheManager cacheManager() {
-		    GaeCacheManager cacheManager = new GaeCacheManager();
-		    cacheManager.addCache(new GaeCache("default", MemcacheServiceFactory.getMemcacheService(), Expiration.byDeltaSeconds(60)));
-		    return cacheManager;
-	    }
+    
+        /**
+         * Set up the {@link CacheManager}
+         * with an memcached based cache
+         * @return
+         */
+        @Bean(name="cacheManager")
+        @Override
+        public CacheManager cacheManager() {
+            GaeCacheManager cacheManager = new GaeCacheManager();
+            cacheManager.addCache(new GaeCache("default", MemcacheServiceFactory.getMemcacheService(), Expiration.byDeltaSeconds(60)));
+            return cacheManager;
+        }
 
-	    @Bean
-	    @Override
- 	    public KeyGenerator keyGenerator() {
-		    GaeCacheKeyGenerator generator = new GaeCacheKeyGenerator();
-		    generator.registerStrategy(Foo.class, new FooKeyGeneratorStrategy());
-		    return generator;
-	    }
+        @Bean
+        @Override
+        public KeyGenerator keyGenerator() {
+            GaeCacheKeyGenerator generator = new GaeCacheKeyGenerator();
+            generator.registerStrategy(Foo.class, new FooArgumentHashStrategy());
+            return generator;
+        }
 
     }
     
@@ -94,5 +101,4 @@ It is available in the Sonatype repository on these coordinates. Look in Github 
         <artifactId>spring-cache-gae</artifactId>
         <version>${version}</version>
     </dependency>
-    
     
