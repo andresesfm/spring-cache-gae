@@ -31,7 +31,6 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
-import org.springframework.cache.support.SimpleValueWrapper;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -64,24 +63,6 @@ public class GaeCacheITCase {
 	@After
 	public void tearDown() {
 		helper.tearDown();
-	}
-
-
-	@Test
-	public void testCacheManager() throws Exception {
-		Cache cache = cacheManager.getCache("default");
-
-		// Check cache is empty
-		Assert.assertNotNull(cache);
-		GaeCacheKey cacheKey = GaeCacheKey.create("key");
-		Assert.assertNull(cache.get(cacheKey));
-
-		// Put something in the cache
-		cache.put(cacheKey, "foo");
-		Assert.assertEquals(new SimpleValueWrapper("foo").get(), cache.get(cacheKey).get());
-
-		// Check consistency
-		Assert.assertNotNull(cache.get(cacheKey));
 	}
 
 	@Test
@@ -147,21 +128,6 @@ public class GaeCacheITCase {
 		// Check cache consistency
 		assertCached(ms, result1, "default", "foo");
 
-	}
-
-	@Test
-	public void testLazyCreatedCache() throws Exception {
-
-		// This cache is not pre-configured
-		Cache lazy = cacheManager.getCache("other");
-		Assert.assertNotNull(lazy);
-
-		// Cache something
-		Foo foo = new Foo(new FooKey(1l), "bar");
-		lazy.put(GaeCacheKey.create("bar"), foo);
-
-		// Check consistency
-		assertCached(ms, foo, "other", "bar");
 	}
 
 	@Test

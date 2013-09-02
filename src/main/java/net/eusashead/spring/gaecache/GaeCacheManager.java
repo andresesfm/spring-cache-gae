@@ -27,6 +27,7 @@ import java.util.Collection;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.support.AbstractCacheManager;
+import org.springframework.util.Assert;
 
 /**
  * Implementation of {@link CacheManager} that 
@@ -68,7 +69,8 @@ public class GaeCacheManager extends AbstractCacheManager {
 	 * @param cache
 	 */
 	public void addCache(GaeCache cache) {
-		this.caches.add(cache);
+		Assert.notNull(cache);
+		super.addCache(cache);
 	}
 
 }
