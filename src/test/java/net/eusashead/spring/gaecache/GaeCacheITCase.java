@@ -80,7 +80,7 @@ public class GaeCacheITCase {
 		Assert.assertEquals(new SimpleValueWrapper("foo").get(), cache.get("key").get());
 
 		// Check consistency
-		assertCached(ms, "default", "key");
+		Assert.assertNotNull(cache.get("key"));
 	}
 
 	@Test
@@ -90,13 +90,10 @@ public class GaeCacheITCase {
 		Cache cache = new GaeCache("nullCache");
 
 		// Cache a null value
-		cache.put("null", null);
+		cache.put(KeyHash.hash("null"), null);
 
 		// Check consistency
-		assertCached(ms, "nullCache", "null");
-
-		// Check cached value
-		Assert.assertNull(cache.get("null"));
+		assertCached(ms, null, "nullCache", "null");
 
 	}
 
@@ -109,9 +106,6 @@ public class GaeCacheITCase {
 		// Cache a null value
 		Foo foo = new Foo(new FooKey(1l), "null");
 		cache.put(null, foo);
-
-		// Check consistency
-		assertCached(ms, "nullCache", "null");
 
 		// Check cached value
 		Assert.assertNotNull(cache.get(null));
@@ -127,10 +121,10 @@ public class GaeCacheITCase {
 		Foo foo = cacheService.getFooByKey(key);
 
 		// Check cache consistency
-		assertCached(ms, "objectKey", key.toString());
+		assertCached(ms, foo, "objectKey", key.toString());
 
 		// Get it back from the cache
-		Foo cached = (Foo)cacheManager.getCache("objectKey").get(key.toString()).get();
+		Foo cached = (Foo)cacheManager.getCache("objectKey").get(KeyHash.hash(key.toString())).get();
 		Assert.assertEquals(foo, cached);
 
 
@@ -149,7 +143,7 @@ public class GaeCacheITCase {
 		Assert.assertEquals(Long.valueOf(1), cacheService.getLastId());		
 
 		// Check cache consistency
-		assertCached(ms, "default", "foo");
+		assertCached(ms, result1, "default", "foo");
 
 	}
 
@@ -161,10 +155,11 @@ public class GaeCacheITCase {
 		Assert.assertNotNull(lazy);
 
 		// Cache something
-		lazy.put("bar", new Foo(new FooKey(1l), "bar"));
+		Foo foo = new Foo(new FooKey(1l), "bar");
+		lazy.put(KeyHash.hash("bar"), foo);
 
 		// Check consistency
-		assertCached(ms, "other", "bar");
+		assertCached(ms, foo, "other", "bar");
 	}
 
 	@Test
@@ -175,18 +170,20 @@ public class GaeCacheITCase {
 		Cache cache2 = cacheManager.getCache("cache2");
 
 		// 2 objects for 2 caches
-		cache1.put("foo1", new Foo(new FooKey(1l), "foo1"));
-		cache2.put("foo2", new Foo(new FooKey(2l), "foo2"));
+		Foo foo1 = new Foo(new FooKey(1l), "foo1");
+		cache1.put(KeyHash.hash("foo1"), foo1);
+		Foo foo2 = new Foo(new FooKey(2l), "foo2");
+		cache2.put(KeyHash.hash("foo2"), foo2);
 
 		// Are they cached?
-		assertCached(ms, "cache1", "foo1");
-		assertCached(ms, "cache2", "foo2");
+		assertCached(ms, foo1, "cache1", "foo1");
+		assertCached(ms, foo2, "cache2", "foo2");
 
-		// Clear a cache
+		// Clear cache 2
 		cache2.clear();
 
-		// Make sure the other cache is OK
-		assertCached(ms, "cache1", "foo1");
+		// Make sure cache 1 is OK
+		assertCached(ms, foo1, "cache1", "foo1");
 
 		// Make sure the cleared cache is clear
 		assertNotCached(ms, "cache2", "foo2");
@@ -197,10 +194,10 @@ public class GaeCacheITCase {
 	public void testEvictAndPut() throws Exception {
 
 		// Prime list cache
-		cacheService.listFoos();
+		Object expected = cacheService.listFoos();
 
 		// Assert cached
-		assertCached(ms, "list", new Object[0]); 
+		assertCached(ms, expected, "list", new Object[0]); 
 
 		// Create a key
 		FooKey id = new FooKey(3l);
@@ -209,13 +206,14 @@ public class GaeCacheITCase {
 		assertNotCached(ms, "objectKey", id);
 
 		// Cause eviction and putting
-		cacheService.saveFoo(new Foo(id, "blah"));
+		Foo foo = new Foo(id, "blah");
+		Foo updated = cacheService.saveFoo(foo);
 
 		// Assert list not cached anymore
 		assertNotCached(ms, "list", new Object[0]);
 
 		// Assert object cached
-		assertCached(ms, "objectKey", id); 
+		assertCached(ms, updated, "objectKey", id); 
 	}
 
 
