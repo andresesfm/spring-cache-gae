@@ -6,10 +6,11 @@ import com.google.appengine.api.memcache.MemcacheService;
 
 public class GaeCacheAssert {
 
-	public static void assertCached(MemcacheService ms, String namespace, Object... args) {
+	public static void assertCached(MemcacheService ms, Object value, String namespace, Object... args) {
 		Integer nsKey = getNsKey(ms, namespace);
 		String key = keyToString(args);
 		Assert.assertTrue(ms.contains("__NAMESPACE__" + namespace + "_" + nsKey + "_" + key));
+		Assert.assertEquals(value, ms.get("__NAMESPACE__" + namespace + "_" + nsKey + "_" + key));
 	}
 	
 	public static void assertNotCached(MemcacheService ms, String namespace, Object... args) {
@@ -33,7 +34,7 @@ public class GaeCacheAssert {
 			if (obj == null) {
 				compoundKey.append("");
 			} else {
-				compoundKey.append(obj);
+				compoundKey.append(KeyHash.hash(obj.toString()));
 			}
 			//compoundKey.append(">");
 			if (i < args.length - 1) {

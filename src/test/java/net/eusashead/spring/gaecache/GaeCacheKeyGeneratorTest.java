@@ -96,7 +96,7 @@ public class GaeCacheKeyGeneratorTest {
 	@Test
 	public void testSingleArgumentObject() {
 		Object key = generator.generate(service, null, new FooKey(1l));
-		Assert.assertEquals(keyToString(key), key.toString());
+		Assert.assertEquals(keyToString(key), KeyHash.hash(key.toString()));
 	}
 
 	@Test
@@ -121,7 +121,7 @@ public class GaeCacheKeyGeneratorTest {
 		FooKeyGeneratorStrategy strategy = new FooKeyGeneratorStrategy();
 		generator.registerStrategy(Foo.class, strategy);
 		Foo foo = new Foo();
-		Assert.assertEquals(strategy.getKey(foo), generator.generate(service, null, foo));
+		Assert.assertEquals(KeyHash.hash(strategy.getKey(foo)), generator.generate(service, null, foo));
 		
 	}
 
