@@ -29,10 +29,6 @@ import org.mockito.Mockito;
 @RunWith(JUnit4.class)
 public class ArgumentHashTest {
 	
-	// TODO should we allow null constructor arguments? 
-	// The hash value could then be NULL_HASH
-	// we wouldn't need to handle null in the GaeCacheKey so carefully
-	
 	@Test
 	public void testEmptyConstructor() {
 		ArgumentHash hash = new ArgumentHash();
