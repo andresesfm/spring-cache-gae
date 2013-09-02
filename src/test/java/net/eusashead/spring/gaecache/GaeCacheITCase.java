@@ -20,6 +20,9 @@ package net.eusashead.spring.gaecache;
  * %[license]
  */
 
+import static net.eusashead.spring.gaecache.GaeCacheAssert.assertCached;
+import static net.eusashead.spring.gaecache.GaeCacheAssert.assertNotCached;
+
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -40,194 +43,180 @@ import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes={CacheConfig.class})
 public class GaeCacheITCase {
-	
+
 	private final LocalServiceTestHelper helper =
-	        new LocalServiceTestHelper(new LocalMemcacheServiceTestConfig());
-	
+			new LocalServiceTestHelper(new LocalMemcacheServiceTestConfig());
+
 	@Autowired
 	private CacheManager cacheManager;
-	
+
 	@Autowired
 	private CacheService cacheService;
 
 	private MemcacheService ms;
-	
+
 	@Before
-    public void setUp() {
-        helper.setUp();
-        ms = MemcacheServiceFactory.getMemcacheService();
-    }
+	public void setUp() {
+		helper.setUp();
+		ms = MemcacheServiceFactory.getMemcacheService();
+	}
 
-    @After
-    public void tearDown() {
-        helper.tearDown();
-    }
+	@After
+	public void tearDown() {
+		helper.tearDown();
+	}
 
-	
+
 	@Test
 	public void testCacheManager() throws Exception {
 		Cache cache = cacheManager.getCache("default");
-		
+
 		// Check cache is empty
 		Assert.assertNotNull(cache);
 		Assert.assertNull(cache.get("key"));
-		
+
 		// Put something in the cache
 		cache.put("key", "foo");
 		Assert.assertEquals(new SimpleValueWrapper("foo").get(), cache.get("key").get());
-		
+
 		// Check consistency
-		assertCached("default", "key");
+		assertCached(ms, "default", "key");
 	}
-	
+
 	@Test
 	public void testCacheNullResult() throws Exception {
-		
+
 		// Create a cache
 		Cache cache = new GaeCache("nullCache");
-		
+
 		// Cache a null value
 		cache.put("null", null);
-		
+
 		// Check consistency
-		assertCached("nullCache", "null");
-		
+		assertCached(ms, "nullCache", "null");
+
 		// Check cached value
 		Assert.assertNull(cache.get("null"));
-		
+
 	}
-	
+
 	@Test
 	public void testCacheNullKey() throws Exception {
-		
+
 		// Create a cache
 		Cache cache = new GaeCache("nullCache");
-		
+
 		// Cache a null value
 		Foo foo = new Foo(new FooKey(1l), "null");
 		cache.put(null, foo);
-		
+
 		// Check consistency
-		assertCached("nullCache", null);
-		
+		assertCached(ms, "nullCache", "null");
+
 		// Check cached value
 		Assert.assertNotNull(cache.get(null));
 		Assert.assertNotNull(cache.get(null).get());
 		Assert.assertEquals(foo, cache.get(null).get());
-		
+
 	}
-	
+
 	@Test
 	public void testObjectCacheKey() throws Exception {
-		
+
 		FooKey key = new FooKey(123l);
 		Foo foo = cacheService.getFooByKey(key);
-		
+
 		// Check cache consistency
-		assertCached("objectKey", "<key<params<<p0=FooKey [id=123]>>>>");
-		
+		assertCached(ms, "objectKey", key.toString());
+
 		// Get it back from the cache
-		Foo cached = (Foo)cacheManager.getCache("objectKey").get("<key<params<<p0=FooKey [id=123]>>>>").get();
+		Foo cached = (Foo)cacheManager.getCache("objectKey").get(key.toString()).get();
 		Assert.assertEquals(foo, cached);
-		
-		
+
+
 	}
-	
+
 	@Test
 	public void testCacheableAnnotation() throws Exception {
 		Foo result1 = cacheService.getFoo("foo");
 		Foo result2 = cacheService.getFoo("foo");
-		
+
 		// Check same
 		Assert.assertNotNull(result1);
 		Assert.assertEquals(result1, result2);
-		
+
 		// Make sure the method was invoked just once
 		Assert.assertEquals(Long.valueOf(1), cacheService.getLastId());		
-		
+
 		// Check cache consistency
-		assertCached("default", "<key<params<<p0=foo>>>>");
-		
+		assertCached(ms, "default", "foo");
+
 	}
-	
+
 	@Test
 	public void testLazyCreatedCache() throws Exception {
-		
+
 		// This cache is not pre-configured
 		Cache lazy = cacheManager.getCache("other");
 		Assert.assertNotNull(lazy);
-		
+
 		// Cache something
 		lazy.put("bar", new Foo(new FooKey(1l), "bar"));
-		
+
 		// Check consistency
-		assertCached("other", "bar");
+		assertCached(ms, "other", "bar");
 	}
-	
+
 	@Test
 	public void testEvictAll() throws Exception {
-		
+
 		// Create 2 caches
 		Cache cache1 = cacheManager.getCache("cache1");
 		Cache cache2 = cacheManager.getCache("cache2");
-		
+
 		// 2 objects for 2 caches
 		cache1.put("foo1", new Foo(new FooKey(1l), "foo1"));
 		cache2.put("foo2", new Foo(new FooKey(2l), "foo2"));
-		
+
 		// Are they cached?
-		assertCached("cache1", "foo1");
-		assertCached("cache2", "foo2");
-		
+		assertCached(ms, "cache1", "foo1");
+		assertCached(ms, "cache2", "foo2");
+
 		// Clear a cache
 		cache2.clear();
-		
+
 		// Make sure the other cache is OK
-		assertCached("cache1", "foo1");
-		
+		assertCached(ms, "cache1", "foo1");
+
 		// Make sure the cleared cache is clear
-		assertNotCached("cache2", "foo2");
-		
-	}
-	
-	@Test
-	public void testEvictAndPut() throws Exception {
-		
-		// Prime list cache
-		cacheService.listFoos();
-		
-		// Assert cached
-		assertCached("list", "<key<params<>>>"); 
-		
-		// Create a key
-		FooKey id = new FooKey(3l);
-		
-		// Assert object not cached
-		assertNotCached("objectKey", id);
-		
-		// Cause eviction and putting
-		cacheService.saveFoo(new Foo(id, "blah"));
-		
-		// Assert list not cached anymore
-		assertNotCached("list", 0);
-		
-		// Assert object cached
-		assertCached("objectKey", id);
-	}
-	
-	private void assertCached(String namespace, Object key) {
-		Integer nsKey = getNsKey(namespace);
-		Assert.assertTrue(ms.contains("__NAMESPACE__" + namespace + "_" + nsKey + "_" + key));
-	}
-	
-	private void assertNotCached(String namespace, Object key) {
-		Integer nsKey = getNsKey(namespace);
-		Assert.assertFalse(ms.contains("__NAMESPACE__" + namespace + "_" + nsKey + "_" + key));
+		assertNotCached(ms, "cache2", "foo2");
+
 	}
 
-	private Integer getNsKey(String namespace) {
-		Integer nsKey = (Integer)ms.get("__NAMESPACE__" + namespace);
-		return nsKey;
+	@Test
+	public void testEvictAndPut() throws Exception {
+
+		// Prime list cache
+		cacheService.listFoos();
+
+		// Assert cached
+		assertCached(ms, "list", new Object[0]); 
+
+		// Create a key
+		FooKey id = new FooKey(3l);
+
+		// Assert object not cached
+		assertNotCached(ms, "objectKey", id);
+
+		// Cause eviction and putting
+		cacheService.saveFoo(new Foo(id, "blah"));
+
+		// Assert list not cached anymore
+		assertNotCached(ms, "list", new Object[0]);
+
+		// Assert object cached
+		assertCached(ms, "objectKey", id); 
 	}
+
 
 }
