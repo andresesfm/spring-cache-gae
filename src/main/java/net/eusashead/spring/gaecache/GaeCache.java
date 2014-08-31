@@ -57,7 +57,7 @@ import com.google.appengine.api.memcache.MemcacheServiceFactory;
  * the namespace operations would cause more harm than good.
  * 
  * 
- * @author patrickvk
+ * @author patrickvk, andresesfm
  *
  */
 public class GaeCache implements Cache {
@@ -157,8 +157,13 @@ public class GaeCache implements Cache {
 	@Override
 	public void evict(Object key) {
 		Assert.notNull(key);
-		Assert.isAssignable(GaeCacheKey.class, key.getClass());
-		GaeCacheKey cacheKey = GaeCacheKey.class.cast(key);
+        Assert.isTrue(GaeCacheKey.class.isAssignableFrom(key.getClass()) || key instanceof String);
+        GaeCacheKey cacheKey;
+        if(GaeCacheKey.class.isAssignableFrom(key.getClass())) {
+            cacheKey = GaeCacheKey.class.cast(key);
+        }else {
+            cacheKey = GaeCacheKey.create((String) key);
+        }
 		Integer namespaceKey = getNamespaceKey();
 		String nsKey = getKey(namespaceKey, cacheKey);
 		log.fine(String.format("Deleting key %s (%s) from namespace %s (namespace key: %s)", cacheKey.hashValue(), cacheKey.rawValue(), this.name, namespaceKey));
@@ -168,8 +173,13 @@ public class GaeCache implements Cache {
 	@Override
 	public ValueWrapper get(Object key) {
 		Assert.notNull(key);
-		Assert.isAssignable(GaeCacheKey.class, key.getClass());
-		GaeCacheKey cacheKey = GaeCacheKey.class.cast(key);
+        Assert.isTrue(GaeCacheKey.class.isAssignableFrom(key.getClass()) || key instanceof String);
+        GaeCacheKey cacheKey;
+        if(GaeCacheKey.class.isAssignableFrom(key.getClass())) {
+            cacheKey = GaeCacheKey.class.cast(key);
+        }else {
+            cacheKey = GaeCacheKey.create((String) key);
+        }
 		Integer namespaceKey = getNamespaceKey();
 		String nsKey = getKey(namespaceKey, cacheKey);
 		Object value = syncCache.get(nsKey);
@@ -180,8 +190,13 @@ public class GaeCache implements Cache {
 	@Override
 	public void put(Object key, Object value) {
 		Assert.notNull(key);
-		Assert.isAssignable(GaeCacheKey.class, key.getClass());
-		GaeCacheKey cacheKey = GaeCacheKey.class.cast(key);
+        Assert.isTrue(GaeCacheKey.class.isAssignableFrom(key.getClass()) || key instanceof String);
+        GaeCacheKey cacheKey;
+        if(GaeCacheKey.class.isAssignableFrom(key.getClass())) {
+            cacheKey = GaeCacheKey.class.cast(key);
+        }else {
+            cacheKey = GaeCacheKey.create((String) key);
+        }
 		Integer namespaceKey = getNamespaceKey();
 		String nsKey = getKey(namespaceKey, cacheKey);
 		log.fine(String.format("Caching key %s (%s) from namespace %s (namespace key: %s), with %s", cacheKey.hashValue(), cacheKey.rawValue(), this.name, namespaceKey, value));
