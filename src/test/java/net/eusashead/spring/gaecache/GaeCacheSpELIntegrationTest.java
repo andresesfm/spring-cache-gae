@@ -12,6 +12,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.springframework.test.context.ContextConfiguration;
@@ -51,10 +52,24 @@ public class GaeCacheSpELIntegrationTest {
         Assert.assertEquals(response2, response1);
     }
 
+    @Test
+    public void testNumberCache() {
+        String response1 = testService.cachedNumberParameterMethod(234029384L, "param2");
+
+    }
+
+    @Test
+    public void testEvict() {
+        String response1 = testService.cachedMethod("param1", "param2");
+        testService.evictMethod();
+    }
+
 }
 
 interface TestService {
     String cachedMethod(String param1, String param2);
+    String cachedNumberParameterMethod(Long param1, String param2);
+    void evictMethod();
 }
 
 @Component
@@ -63,5 +78,17 @@ class TestServiceImpl implements TestService {
     @Cacheable(value = "default", key = "#p0.concat('-').concat(#p1)")
     public String cachedMethod(String param1, String param2) {
         return "response " + new Random().nextInt();
+    }
+
+    @Override
+    @Cacheable(value = "default", key = "#p0")
+    public String cachedNumberParameterMethod(Long param1, String param2) {
+        return "response " + param1 + param2;
+    }
+
+    @CacheEvict("default")
+    @Override
+    public void evictMethod() {
+
     }
 }

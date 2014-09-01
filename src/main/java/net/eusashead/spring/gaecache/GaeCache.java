@@ -92,7 +92,12 @@ public class GaeCache implements Cache {
 	 */
 	private final MemcacheService syncCache;
 
-	/**
+    /**
+     * Default strategy, used in the case an object is passed instead of a GaeCacheKey
+     */
+    private ArgumentHashStrategy argumentHashStrategy;
+
+    /**
 	 * Constructor uses supplied name
 	 * and creates a {@link MemcacheService}
 	 * using {@link MemcacheServiceFactory}.getMemcacheService()
@@ -129,6 +134,8 @@ public class GaeCache implements Cache {
 		// Set the cache expiration
 		this.expiration = expiration;
 
+        argumentHashStrategy = new DefaultArgumentHashStrategy();
+
 	}
 
 	/**
@@ -157,14 +164,13 @@ public class GaeCache implements Cache {
 	@Override
 	public void evict(Object key) {
 		Assert.notNull(key);
-        Assert.isTrue(GaeCacheKey.class.isAssignableFrom(key.getClass()) || key instanceof String);
         GaeCacheKey cacheKey;
         if(GaeCacheKey.class.isAssignableFrom(key.getClass())) {
             cacheKey = GaeCacheKey.class.cast(key);
         }else {
-            cacheKey = GaeCacheKey.create((String) key);
+            cacheKey = new GaeCacheKey(argumentHashStrategy.hash(key));
         }
-		Integer namespaceKey = getNamespaceKey();
+        Integer namespaceKey = getNamespaceKey();
 		String nsKey = getKey(namespaceKey, cacheKey);
 		log.fine(String.format("Deleting key %s (%s) from namespace %s (namespace key: %s)", cacheKey.hashValue(), cacheKey.rawValue(), this.name, namespaceKey));
 		syncCache.delete(nsKey);
@@ -173,12 +179,11 @@ public class GaeCache implements Cache {
 	@Override
 	public ValueWrapper get(Object key) {
 		Assert.notNull(key);
-        Assert.isTrue(GaeCacheKey.class.isAssignableFrom(key.getClass()) || key instanceof String);
         GaeCacheKey cacheKey;
         if(GaeCacheKey.class.isAssignableFrom(key.getClass())) {
             cacheKey = GaeCacheKey.class.cast(key);
         }else {
-            cacheKey = GaeCacheKey.create((String) key);
+            cacheKey = new GaeCacheKey(argumentHashStrategy.hash(key));
         }
 		Integer namespaceKey = getNamespaceKey();
 		String nsKey = getKey(namespaceKey, cacheKey);
@@ -190,12 +195,11 @@ public class GaeCache implements Cache {
 	@Override
 	public void put(Object key, Object value) {
 		Assert.notNull(key);
-        Assert.isTrue(GaeCacheKey.class.isAssignableFrom(key.getClass()) || key instanceof String);
         GaeCacheKey cacheKey;
         if(GaeCacheKey.class.isAssignableFrom(key.getClass())) {
             cacheKey = GaeCacheKey.class.cast(key);
         }else {
-            cacheKey = GaeCacheKey.create((String) key);
+            cacheKey = new GaeCacheKey(argumentHashStrategy.hash(key));
         }
 		Integer namespaceKey = getNamespaceKey();
 		String nsKey = getKey(namespaceKey, cacheKey);
